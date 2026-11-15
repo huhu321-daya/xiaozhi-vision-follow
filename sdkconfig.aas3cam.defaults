@@ -1,0 +1,10 @@
+# AAS3-CAM 板专用构建覆盖：base sdkconfig.defaults 默认是 AHUHU，此文件最后应用强制切到 AAS3-CAM。
+CONFIG_BOARD_TYPE_AHUHUS3=n
+CONFIG_BOARD_TYPE_AASXT=n
+CONFIG_BOARD_TYPE_AAS3CAM=y
+# 独立监控节点不跑小智应用框架（Application 在 main.cc 已按板型分支跳过）
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions/v2/16m_ahuhu.csv"
+CONFIG_PARTITION_TABLE_FILENAME="partitions/v2/16m_ahuhu.csv"
+# 修复混合 base + esp32s3 的 LWIP 冲突：TCP oversize 需选 MSS（和 AHUHU 一致）
+CONFIG_LWIP_TCP_OVERSIZE_MSS=y
+CONFIG_TCP_OVERSIZE_MSS=y

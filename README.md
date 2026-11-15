@@ -1,33 +1,36 @@
 # xiaozhi-vision-follow
 
-小智 AI 视觉跟随系统（车尾背装小车），采用「电脑当大脑」三层架构：电脑端做检测与决策，ESP32 双板只负责推流与电机执行。
+小智 AI 视觉跟随系统（车尾背装小车），「电脑当大脑」三层架构：电脑端做检测与决策，ESP32 双板只负责推流与电机执行。
+
+本仓库同时提供**可运行成品**与**完整源码**：发送板可独立编译，接收板以整目录覆盖回 [xiaozhi-esp32](https://github.com/78/xiaozhi-esp32) 主框架，电脑端纯 Python 即可跑。
 
 ## 架构
 
 ```
-电脑端 pc_brain（YOLOv8n 人体检测 + 决策）
-      │ 拉流  http://192.168.1.11/stream
+电脑端 pc_brain（YOLOv8n 人体检测 + 跟随决策）
+      │ 拉流  http://<发送板IP>/stream
       ▼
-发送板 sender_aas3cam（AAS3-CAM：MJPEG 推流 + UDP 转发）
-      │ UDP 广播 MOTOR 指令（255.255.255.255:8093）
+发送板 sender_aas3cam（AAS3-CAM：MJPEG 推流 + 本地人体检测 + UDP 广播）
+      │ UDP MOTOR 指令（255.255.255.255:8093）
       ▼
-接收板 receiver_ahuhu（ahuhu 板：电机执行）
+接收板 main/boards/ahuhu（ahuhu 板：电机执行 + 彩屏待机）
 ```
 
-## 目录结构
+## 目录
 
-| 目录 | 作用 | 独立编译 |
+| 路径 | 作用 | 能否独立编译 |
 |---|---|---|
-| pc_brain/ | 电脑端大脑（Python + YOLOv8n） | ✅ |
-| sender_aas3cam/ | 发送板固件（ESP-IDF 独立项目） | ✅ |
-| receiver_ahuhu/ | 接收板固件（依赖小智主框架，作 patch） | ⚠️ |
-| docs/ | 进度文档 | — |
+| `pc_brain/` | 电脑端大脑（Python + YOLOv8n，含 `yolov8n.onnx`） | ✅ |
+| `sender_aas3cam/` | 发送板固件（ESP-IDF v5.5.4 / ESP32-S3 / OV3660 VGA） | ✅ |
+| `main/boards/ahuhu/` | 接收板完整板级实现（15 文件：UDP 电机、OV7670、ST7735 屏、天气/新闻服务） | ⚠️ 依赖小智主框架 |
+| `main/boards/AAS3-CAM/` | 发送板板级说明 | — |
+| `tests/` | 视觉链路验证脚本（硅基流动 / 智谱 / 本地 Ollama） | ✅ |
+| `docs/` | 三阶段方案演进、任务记录、彩屏待机要求 | — |
+| `build_aas3cam.ps1`、`sdkconfig.aas3cam.defaults` | 发送节点编译脚本与配置基线 | — |
 
 ## 快速开始
 
 ### 1. 电脑端（pc_brain）
-
-依赖 Python 3.9+：
 
 ```bash
 pip install -r pc_brain/requirements.txt
@@ -40,8 +43,6 @@ python pc_brain/phone_follow.py --check      # 拉一帧自检
 
 ### 2. 发送板（sender_aas3cam）
 
-ESP-IDF v5.5.4 + ESP32-S3，AAS3-CAM（OV3660，VGA 640×480）。
-
 ```powershell
 cd sender_aas3cam
 .\build_node.ps1 build     # 编译
@@ -49,12 +50,16 @@ cd sender_aas3cam
 .\build_node.ps1 monitor   # 监控
 ```
 
-### 3. 接收板（receiver_ahuhu）
+### 3. 接收板（main/boards/ahuhu）
 
-接收端依赖小智主框架 [xiaozhi-esp32](https://github.com/78/xiaozhi-esp32)，不独立编译。
-把 `receiver_ahuhu/` 下三个文件放到主仓库 `main/boards/ahuhu/` 编译即可：
-- `ahuhu_board.cc/.h`：UDP 电机指令执行
-- `config.h`：电机引脚（LF=12 LB=11 RF=14 RB=13）
+不独立编译，需在小智主框架内使用：
+
+```bash
+git clone https://github.com/78/xiaozhi-esp32
+cp -r main/boards/ahuhu /path/to/xiaozhi-esp32/main/boards/
+```
+
+`config.h` 内电机引脚：LF=12 LB=11 RF=14 RB=13。
 
 ## 决策逻辑
 
@@ -67,28 +72,37 @@ cd sender_aas3cam
 
 电机指令 `MOTOR <dir> <speed> <dur>`，dir：1=右转 2=后退 3=左转 4=前进。
 
-## 模型
-
-`pc_brain/yolov8n.onnx`：Ultralytics YOLOv8n（COCO 预训练，只取 person 类）。
-重新导出：
-
-```bash
-pip install ultralytics
-yolo export model=yolov8n.pt format=onnx
-```
-
 ## 凭据配置
 
-仓库**不含任何真实凭据**：WiFi SSID/密码、VLM API Key 均为 `YOUR_*` 占位符。编译前二选一：
+仓库**不含任何真实凭据**，全部为 `YOUR_*` 占位符。
 
-- 本地修改 `sender_aas3cam/main/cam_config.h`、`receiver_ahuhu/ahuhu_board.cc`（改动不要提交）
-- 或用编译宏注入（优先级更高）：
+C 侧（`sender_aas3cam/main/cam_config.h`、`main/boards/ahuhu/ahuhu_board.cc`）已用 `#ifndef` 包裹，编译宏优先：
 
 ```bash
-idf.py -DCAM_WIFI_SSID=\"你的SSID\" -DCAM_WIFI_PASSWORD=\"你的密码\" -DCAM_VLM_KEY=\"sk-xxx\" build
+idf.py -DCAM_WIFI_SSID=\"你的SSID\" -DCAM_WIFI_PASSWORD=\"密码\" -DCAM_VLM_KEY=\"sk-xxx\" build
+```
+
+Python 测试脚本读环境变量：
+
+```bash
+export VLM_API_KEY=sk-xxx        # tests/test_follow_vlm.py（硅基流动）
+export ZHIPU_API_KEY=xxx         # tests/test_zhipu_vision.py（智谱）
+
+python tests/test_zhipu_vision.py    # 抓图 → glm-4v-flash
+python tests/test_follow_vlm.py      # Qwen3-VL 结构化判断延迟测试
+python tests/test_ollama_vision.py   # 本地 Ollama
+```
+
+## 模型
+
+`pc_brain/yolov8n.onnx`：Ultralytics YOLOv8n（COCO 预训练，只取 person 类）。重新导出：
+
+```bash
+pip install ultralytics && yolo export model=yolov8n.pt format=onnx
 ```
 
 ## 文档
 
-- [视觉方案进度](docs/视觉方案进度.md)：完整开发历程
+- [视觉方案进度](docs/视觉方案进度.md)：三阶段演进（小脑控制 → 小脑+大脑协作 → 电脑端大脑）完整开发历程
 - [发送板说明](sender_aas3cam/AAS3-CAM独立摄像头节点说明.md)
+- [接收板说明](main/boards/ahuhu/README.md)

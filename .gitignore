@@ -5,8 +5,17 @@ __pycache__/
 # ESP-IDF 构建产物
 build/
 sdkconfig
+sdkconfig.old
+managed_components/
+*.bin
+*.elf
+*.map
 *.log
 
 # 系统
 .DS_Store
 Thumbs.db
+
+# 本地凭据（如本地填了真实 Key，建议改名后存放）
+cam_config.local.h
+*.local.h

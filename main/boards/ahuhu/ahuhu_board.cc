@@ -77,7 +77,7 @@
 // 视觉大模型（大脑）：拉取 AAS3-CAM 画面后调用硅基流动 Qwen3-VL 做语义理解
 #define ZHIPU_VLM_URL   "https://api.siliconflow.cn/v1/chat/completions"
 #ifndef ZHIPU_VLM_KEY
-#define ZHIPU_VLM_KEY   "YOUR_VLM_API_KEY"   /* 编译时 -DZHIPU_VLM_KEY=\"sk-...\" 注入，勿提交真实 Key */
+#define ZHIPU_VLM_KEY   "YOUR_VLM_API_KEY"   /* 编译时 -DZHIPU_VLM_KEY=\"sk-...\" 注入 */
 #endif
 #define ZHIPU_VLM_MODEL "Qwen/Qwen3-VL-8B-Instruct"
 
