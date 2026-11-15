@@ -1,0 +1,52 @@
+dependencies:
+  espressif/dl_fft:
+    dependencies: []
+    source:
+      path: D:\xiaozhi-esp32-main\aas3cam_node\managed_components\espressif__dl_fft
+      type: local
+    version: 0.8.0
+  espressif/esp-dl:
+    dependencies: []
+    source:
+      path: D:\xiaozhi-esp32-main\aas3cam_node\managed_components\espressif__esp-dl
+      type: local
+    version: 3.3.15
+  espressif/esp32-camera:
+    dependencies: []
+    source:
+      path: D:\xiaozhi-esp32-main\aas3cam_node\managed_components\espressif__esp32-camera
+      type: local
+    version: 2.1.9
+  espressif/esp_jpeg:
+    dependencies: []
+    source:
+      path: D:\xiaozhi-esp32-main\aas3cam_node\managed_components\espressif__esp_jpeg
+      type: local
+    version: 1.3.2
+  espressif/esp_new_jpeg:
+    dependencies: []
+    source:
+      path: D:\xiaozhi-esp32-main\aas3cam_node\managed_components\espressif__esp_new_jpeg
+      type: local
+    version: 1.0.2
+  espressif/pedestrian_detect:
+    dependencies: []
+    source:
+      path: D:\xiaozhi-esp32-main\aas3cam_node\managed_components\espressif__pedestrian_detect
+      type: local
+    version: 0.3.3
+  idf:
+    source:
+      type: idf
+    version: 5.5.4
+direct_dependencies:
+- espressif/dl_fft
+- espressif/esp-dl
+- espressif/esp32-camera
+- espressif/esp_jpeg
+- espressif/esp_new_jpeg
+- espressif/pedestrian_detect
+- idf
+manifest_hash: d6cab75793fcc2a02c12af7a6fc18a1ce872ba43ecdf62f1ff542ba4723d6827
+target: esp32s3
+version: 2.0.0

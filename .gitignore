@@ -1,0 +1,12 @@
+# Python 缓存
+__pycache__/
+*.pyc
+
+# ESP-IDF 构建产物
+build/
+sdkconfig
+*.log
+
+# 系统
+.DS_Store
+Thumbs.db

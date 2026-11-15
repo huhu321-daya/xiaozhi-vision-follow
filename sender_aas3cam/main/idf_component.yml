@@ -1,0 +1,6 @@
+## AAS3-CAM 独立摄像头节点：只依赖摄像头驱动
+dependencies:
+  espressif/esp32-camera: "^2.1.4"
+  espressif/pedestrian_detect: "0.3.3"
+  idf:
+    version: ">=5.4.0"
